@@ -5,8 +5,8 @@ import { DMarketPlace } from "../typechain-types";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { ContractTransactionResponse } from "ethers";
 
-const convertEtherToUnits = (ether: number | bigint) => {
-  return ethers.parseUnits(ether.toString(), "ether");
+const convertUnits = (amount: number | bigint, units: string = "ether") => {
+  return ethers.parseUnits(amount.toString(), units);
 };
 
 const PRODUCT = {
@@ -14,7 +14,7 @@ const PRODUCT = {
   name: "Product Testing",
   category: "Clothing",
   img: "https://ipfs.io/ipfs/QmTYEboq8raiBs7GTUg2yLXB3PMz6HuBNgNfSZBx5Msztg/shoes.jpg",
-  price: convertEtherToUnits(1),
+  price: convertUnits(1, "ether"),
   stock: 10,
 };
 
@@ -32,7 +32,10 @@ describe("DMarketPlace", () => {
   let buyer: SignerWithAddress;
 
   before(async () => {
-    contract = await ethers.deployContract("DMarketPlace");
+    const marketFee = convertUnits(500000, "gwei");
+    const factory = await ethers.getContractFactory("DMarketPlace");
+
+    contract = await factory.deploy(marketFee);
     [administrator, owner, buyer] = await ethers.getSigners();
   });
 
@@ -82,7 +85,7 @@ describe("DMarketPlace", () => {
     let initialOwnerBalance: bigint;
 
     before(async () => {
-      const fee = await contract.MARKET_FEE();
+      const fee = await contract.market_fee();
       orderTransaction = await contract
         .connect(buyer)
         .buy(ORDER.productId, ORDER.shipment, { value: PRODUCT.price + fee });
@@ -150,14 +153,14 @@ describe("DMarketPlace", () => {
     });
 
     it("Change the market fee", async () => {
-      const newFee = 1000000;
+      const newFee = convertUnits(1000000, "gwei");
       const transaction = await contract
         .connect(administrator)
         .changeMarketFee(newFee);
 
       await transaction.wait();
 
-      const fee = await contract.MARKET_FEE();
+      const fee = await contract.market_fee();
       expect(fee).to.equal(newFee);
     });
   });

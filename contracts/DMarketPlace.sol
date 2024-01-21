@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 contract DMarketPlace {
 
   address public owner;
-  uint public MARKET_FEE;
+  uint public market_fee;
   uint public fee_balance;
 
   struct Product {
@@ -33,8 +33,9 @@ contract DMarketPlace {
   event Buy(address buyer, uint orderId, uint productId); 
   event Completed(address owner, uint productId);
 
-  constructor() {
+  constructor(uint _market_fee) {
     owner = msg.sender;
+    market_fee = _market_fee;
   }
 
   modifier onlyOwner {
@@ -65,10 +66,10 @@ contract DMarketPlace {
 
     require(product.id >= 0, "Product is not exists!");
     require(product.stock > 0, "Product is out of stock!");
-    require(product.price + MARKET_FEE == msg.value, "Invalid payment amount!");
+    require(product.price + market_fee == msg.value, "Invalid payment amount!");
 
     product.stock--;
-    fee_balance += MARKET_FEE;
+    fee_balance += market_fee;
     uint orderId = orders[msg.sender].length;
 
     Order memory order = Order({
@@ -110,6 +111,6 @@ contract DMarketPlace {
   }
 
   function changeMarketFee(uint fee) public onlyOwner {
-    MARKET_FEE = fee;
+    market_fee = fee;
   }
 }
