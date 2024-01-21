@@ -27,7 +27,7 @@ contract DMarketPlace {
   }
 
   Product[] public products;
-  mapping (address => Order[]) orders;
+  mapping (address => Order[]) public orders;
   
   event Post(address owner, uint id, string name, uint price);
   event Buy(address buyer, uint orderId, uint productId); 
