@@ -83,13 +83,15 @@ contract DMarketPlace {
     emit Buy(msg.sender, orderId, product.id);
   }
 
-  function setOrderCompleted(uint _orderId) public {
+  function setOrderCompleted(uint _orderId, uint8 rating) public {
     Order storage order = orders[msg.sender][_orderId];
 
     require(order.id >= 0, "Order is not exists!");
     order.is_completed = true;
-
+    
     Product memory product = order.product;
+    product.rating = rating;
+
     sendPayment(product.owner, product.price);
   }
 
