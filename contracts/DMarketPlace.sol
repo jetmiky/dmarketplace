@@ -21,6 +21,8 @@ contract DMarketPlace {
     uint id;
     uint timestamp;
     Product product;
+    string shipment;
+    bool is_completed;
   }
 
   Product[] public products;
@@ -28,6 +30,7 @@ contract DMarketPlace {
   
   event Post(address owner, uint id, string name, uint price);
   event Buy(address buyer, uint orderId, uint productId); 
+  event Completed(address owner, uint productId);
 
   constructor() {
     owner = msg.sender;
@@ -56,7 +59,7 @@ contract DMarketPlace {
     emit Post(msg.sender, id, _name, _price);
   }
 
-  function buy(uint _id) public payable {
+  function buy(uint _id, string memory _shipment) public payable {
     Product storage product = products[_id];
 
     require(product.id >= 0, "Product is not exists!");
@@ -69,11 +72,28 @@ contract DMarketPlace {
     Order memory order = Order({
       id: orderId,
       timestamp: block.timestamp,
-      product: product
+      product: product,
+      shipment: _shipment,
+      is_completed: false
     });
 
     orders[msg.sender].push(order);
     emit Buy(msg.sender, orderId, product.id);
+  }
+
+  function setOrderCompleted(uint _orderId) public {
+    Order storage order = orders[msg.sender][_orderId];
+
+    require(order.id >= 0, "Order is not exists!");
+    order.is_completed = true;
+
+    Product memory product = order.product;
+    sendPayment(product.owner, product.price);
+  }
+
+  function sendPayment(address _productOwner, uint _amount) private {
+    (bool sent, ) = _productOwner.call{value: _amount}("");
+    require(sent, "Failed to send order payment");
   }
 
   function changeMarketFee(uint fee) public onlyOwner {
