@@ -5,6 +5,7 @@ contract DMarketPlace {
 
   address public owner;
   uint public MARKET_FEE = 10 wei;
+  uint private fee_balance;
 
   struct Product {
     uint id;
@@ -67,6 +68,7 @@ contract DMarketPlace {
     require(product.price + MARKET_FEE == msg.value, "Invalid payment amount!");
 
     product.stock--;
+    fee_balance += MARKET_FEE;
     uint orderId = orders[msg.sender].length;
 
     Order memory order = Order({
@@ -94,6 +96,13 @@ contract DMarketPlace {
   function sendPayment(address _productOwner, uint _amount) private {
     (bool sent, ) = _productOwner.call{value: _amount}("");
     require(sent, "Failed to send order payment");
+  }
+
+  function withdraw() public onlyOwner {
+    uint balance = fee_balance;
+    fee_balance = 0;
+
+    sendPayment(owner, balance);
   }
 
   function changeMarketFee(uint fee) public onlyOwner {
