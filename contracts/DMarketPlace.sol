@@ -4,8 +4,8 @@ pragma solidity ^0.8.19;
 contract DMarketPlace {
 
   address public owner;
-  uint public MARKET_FEE = 10 wei;
-  uint private fee_balance;
+  uint public MARKET_FEE = 500000 gwei;
+  uint public fee_balance;
 
   struct Product {
     uint id;
