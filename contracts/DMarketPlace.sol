@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 contract DMarketPlace {
 
   address public owner;
-  uint public MARKET_FEE = 500000 gwei;
+  uint public MARKET_FEE;
   uint public fee_balance;
 
   struct Product {
@@ -83,16 +83,18 @@ contract DMarketPlace {
     emit Buy(msg.sender, orderId, product.id);
   }
 
-  function setOrderCompleted(uint _orderId, uint8 rating) public {
+  function setOrderCompleted(uint _orderId, uint8 _rating) public {
     Order storage order = orders[msg.sender][_orderId];
 
     require(order.id >= 0, "Order is not exists!");
     order.is_completed = true;
     
-    Product memory product = order.product;
-    product.rating = rating;
+    Product storage product = products[order.product.id];
+    product.rating = _rating;
 
     sendPayment(product.owner, product.price);
+
+    emit Completed(product.owner, product.id);
   }
 
   function sendPayment(address _productOwner, uint _amount) private {
